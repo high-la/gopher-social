@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/high-la/gopher-social/internal/store"
 )
 
 type config struct {
@@ -15,6 +16,7 @@ type config struct {
 
 type application struct {
 	config config
+	store  store.Storage
 }
 
 func (app *application) mount() http.Handler {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/high-la/gopher-social/internal/store"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -22,8 +23,11 @@ func main() {
 		addr: addr,
 	}
 
+	store := store.NewStorage(nil)
+
 	app := &application{
 		config: cfg,
+		store:  store,
 	}
 
 	mux := app.mount()
