@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/high-la/gopher-social/internal/db"
 	"github.com/high-la/gopher-social/internal/store"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
@@ -13,6 +14,7 @@ import (
 
 func main() {
 
+	// env files
 	// u can load multiple files
 	err := godotenv.Load(".env", ".env")
 	if err != nil {
@@ -35,7 +37,17 @@ func main() {
 		},
 	}
 
-	store := store.NewStorage(nil)
+	// database
+	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConnections, cfg.db.maxIdleConnections, cfg.db.maxIdleTime)
+	if err != nil {
+		log.Panic("unable to connect to the database \n", err)
+	}
+
+	defer db.Close()
+	log.Println("database connection pool established")
+
+	// store
+	store := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
