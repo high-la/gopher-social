@@ -12,6 +12,14 @@ import (
 
 type config struct {
 	addr string
+	db   dbConfig
+}
+
+type dbConfig struct {
+	dsn                string
+	maxOpenConnections int
+	maxIdleConnections int
+	maxIdleTime        time.Duration
 }
 
 type application struct {
