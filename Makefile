@@ -9,7 +9,7 @@ MIGRATIONS_PATH = ./cmd/migrate/migrations
 
 # ___________________________________________________________________________________________
 #
-# Run and Build section
+# Run and Build section 
 # ___________________________________________________________________________________________
 # 
 
@@ -37,6 +37,12 @@ migrate/up:
 .PHONY: migrate/down
 migrate/down:
 	@migrate -path=$(MIGRATIONS_PATH) -database=$(GOPHER_SOCIAL_DSN) down $(filter-out $@,$(MAKECMDGOALS))
+
+#  
+# lets say version 5(000005) failed, 
+# Force the version back to 4:
+# tell the database to act as if version 4 was the last successful one:
+# make migrate/force 4
 
 .PHONY: migrate/force
 migrate/force:
