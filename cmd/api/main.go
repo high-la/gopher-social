@@ -12,6 +12,8 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
+const version = "0.0.1"
+
 func main() {
 
 	// env files
@@ -35,6 +37,7 @@ func main() {
 			maxIdleConnections: maxIdleConnections,
 			maxIdleTime:        maxIdleTime,
 		},
+		env: os.Getenv("GOPHER_SOCIAL_APP_ENV"),
 	}
 
 	// database

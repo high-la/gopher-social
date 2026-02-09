@@ -6,6 +6,25 @@ export # This exports all variables from .env so they are available to shell com
 MIGRATIONS_PATH = ./cmd/migrate/migrations
 
 # 3. Targets
+
+# ___________________________________________________________________________________________
+#
+# Run and Build section
+# ___________________________________________________________________________________________
+# 
+
+.PHONY: run
+run:
+	@echo "Running application"
+	go run ./cmd/api
+
+
+# ___________________________________________________________________________________________
+#
+# Migration section
+# ___________________________________________________________________________________________
+# 
+
 .PHONY: migrate/create
 migrate/create:
 	@echo "Creating migration: $(filter-out $@,$(MAKECMDGOALS))"
