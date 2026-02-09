@@ -12,3 +12,7 @@ content-type: application/json
     "content": "Hello there this is my first post",
     "tags": ["tag1"]
 }
+
+### Get post by id
+
+GET http://localhost:40100/v1/posts/1
