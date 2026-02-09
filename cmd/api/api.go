@@ -49,9 +49,17 @@ func (app *application) mount() http.Handler {
 
 		// /posts
 		r.Route("/posts", func(r chi.Router) {
-
+			// 1. Routes that DO NOT need the context middleware (no ID yet)
 			r.Post("/", app.createPostHandler)
-			r.Get("/{id}", app.getPostHandler)
+
+			// 2. Routes that DO need the context middleware (must have an ID)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(app.postsContextMiddleware) // Middleware applied only here
+
+				r.Get("/", app.getPostHandler)       // Maps to GET /posts/{id}
+				r.Patch("/", app.updatePostHandler)  // Maps to PATCH /posts/{id}
+				r.Delete("/", app.deletePostHandler) // Maps to DELETE /posts/{id}
+			})
 		})
 	})
 
