@@ -1,0 +1,14 @@
+# Check health
+GET http://localhost:40100/v1/health
+
+### "###" used as request to request separater 
+
+# Create post
+POST http://localhost:40100/v1/posts
+content-type: application/json
+
+{
+    "title": "New post",
+    "content": "Hello there this is my first post",
+    "tags": ["tag1"]
+}

@@ -31,7 +31,7 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 
 	args := []any{post.Content, post.Title, post.UserID, pq.Array(post.Tags)}
 
-	err := s.db.QueryRowContext(ctx, query, args).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 
 	if err != nil {
 		return err
