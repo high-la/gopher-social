@@ -4,6 +4,7 @@ export # This exports all variables from .env so they are available to shell com
 
 # 2. Configuration
 MIGRATIONS_PATH = ./cmd/migrate/migrations
+SEED_PATH = ./cmd/migrate/seed/main.go
 
 # 3. Targets
 
@@ -47,6 +48,17 @@ migrate/down:
 .PHONY: migrate/force
 migrate/force:
 	@migrate -path=$(MIGRATIONS_PATH) -database=$(GOPHER_SOCIAL_DSN) force $(filter-out $@,$(MAKECMDGOALS))
+
+
+# ___________________________________________________________________________________________
+#
+# Seed section
+# ___________________________________________________________________________________________
+# 
+.PHONY: seed
+seed:
+	@go run $(SEED_PATH)
+
 
 # 4. The "Catch-All" Target
 # This is CRITICAL. It prevents Make from throwing an error like 
