@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -99,10 +100,18 @@ func (app *application) mount() http.Handler {
 func (app *application) run(mux http.Handler) error {
 
 	// Docs
+	// Parse the external URL to strip the protocol (http://)
+	parsedURL, err := url.Parse(app.config.apiURL)
+	if err != nil {
+		log.Fatalf("invalid API URL: %v", err)
+	}
+
 	docs.SwaggerInfo.Version = version
-	docs.SwaggerInfo.Host = app.config.apiURL
+	docs.SwaggerInfo.Host = parsedURL.Host                // Dynamically gets "localhost:40100"
+	docs.SwaggerInfo.Schemes = []string{parsedURL.Scheme} // Dynamically gets "http"
 	docs.SwaggerInfo.BasePath = "/v1"
 
+	// .
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,
