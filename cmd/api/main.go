@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/high-la/gopher-social/internal/store"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
+	"go.uber.org/zap"
 )
 
 const version = "0.0.1"
@@ -34,11 +34,15 @@ const version = "0.0.1"
 // @description				Description for the tool
 func main() {
 
+	// Logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
+
 	// env files
 	// u can load multiple files
 	err := godotenv.Load(".env", ".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Fatal("Error loading .env file")
 	}
 
 	addr := os.Getenv("GOPHER_SOCIAL_ADDR")
@@ -60,14 +64,14 @@ func main() {
 		env: os.Getenv("GOPHER_SOCIAL_APP_ENV"),
 	}
 
-	// database
+	// Database
 	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConnections, cfg.db.maxIdleConnections, cfg.db.maxIdleTime)
 	if err != nil {
-		log.Panic("unable to connect to the database \n", err)
+		logger.Fatal("unable to connect to the database \n", err)
 	}
 
 	defer db.Close()
-	log.Println("database connection pool established")
+	logger.Info("database connection pool established")
 
 	// store
 	store := store.NewStorage(db)
@@ -75,11 +79,12 @@ func main() {
 	app := &application{
 		config: cfg,
 		store:  store,
+		logger: logger,
 	}
 
 	mux := app.mount()
 
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }
 
 // getEnvInt reads an env var and converts to int, or returns a default

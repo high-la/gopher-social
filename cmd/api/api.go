@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 
 	"github.com/high-la/gopher-social/docs" // This is required to generate swagger docs
 	"github.com/high-la/gopher-social/internal/store"
@@ -32,6 +32,7 @@ type dbConfig struct {
 type application struct {
 	config config
 	store  store.Storage
+	logger *zap.SugaredLogger
 }
 
 func (app *application) mount() http.Handler {
@@ -103,7 +104,7 @@ func (app *application) run(mux http.Handler) error {
 	// Parse the external URL to strip the protocol (http://)
 	parsedURL, err := url.Parse(app.config.apiURL)
 	if err != nil {
-		log.Fatalf("invalid API URL: %v", err)
+		app.logger.Fatalf("invalid API URL: %v", err)
 	}
 
 	docs.SwaggerInfo.Version = version
@@ -120,7 +121,7 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server has started at %s", app.config.addr)
+	app.logger.Infow("server has started", "addr", app.config.addr, "env", app.config.env)
 
 	return srv.ListenAndServe()
 }
