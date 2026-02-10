@@ -49,5 +49,8 @@ DELETE http://localhost:40100/v1/posts/2
 ### default
 GET http://localhost:40100/v1/users/feed
 
-### with pagination value
-GET http://localhost:40100/v1/users/feed?limit=1&offset=1
+### with pagination limit & offset
+GET http://localhost:40100/v1/users/feed?limit=10&offset=0
+
+### with pagination limit, offset & search
+GET http://localhost:40100/v1/users/feed?limit=10&offset=&search=shift
