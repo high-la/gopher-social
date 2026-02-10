@@ -69,7 +69,10 @@ func (app *application) mount() http.Handler {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.usersContextMiddleware) // Middleware applied only here
 
-				r.Get("/", app.getUserHandler) // Maps to GET /posts/{id}
+				r.Get("/", app.getUserHandler) // Maps to GET /users/{id}
+
+				r.Put("/follow", app.followUserHandler)
+				r.Put("/unfollow", app.unfollowUserHandler)
 			})
 		})
 	})
