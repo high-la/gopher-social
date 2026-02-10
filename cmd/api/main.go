@@ -14,6 +14,24 @@ import (
 
 const version = "0.0.1"
 
+// ..............................swagger directives
+//	@title			GopherSocial
+//	@description	API for GopherSocial, a social network for gophers
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath					/v1
+//
+// @securityDefinations.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 
 	// env files
@@ -24,13 +42,15 @@ func main() {
 	}
 
 	addr := os.Getenv("GOPHER_SOCIAL_ADDR")
+	apiURL := os.Getenv("GOPHER_SOCIAL_EXTERNAL_URL")
 	dsn := os.Getenv("GOPHER_SOCIAL_DSN")
 	maxOpenConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_OPEN_CONNECTIONS", 30)
 	maxIdleConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_IDLE_CONNECTIONS", 30)
 	maxIdleTime := getEnvTime("GOPHER_SOCIAL_DB_MAX_IDLE_TIME", 15*time.Minute)
 
 	cfg := config{
-		addr: addr,
+		addr:   addr,
+		apiURL: apiURL,
 		db: dbConfig{
 			dsn:                dsn,
 			maxOpenConnections: maxOpenConnections,

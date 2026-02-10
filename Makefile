@@ -60,6 +60,23 @@ seed:
 	@go run $(SEED_PATH)
 
 
+# ___________________________________________________________________________________________
+#
+# Swagger Section
+# ___________________________________________________________________________________________
+# 
+.PHONY: gen/docs
+gen/docs:
+	@swag init -g ./api/main.go --parseDependency -d cmd,internal && swag fmt
+    
+
+
+# ___________________________________________________________________________________________
+#
+# Catch-All section
+# ___________________________________________________________________________________________
+# 
+
 # 4. The "Catch-All" Target
 # This is CRITICAL. It prevents Make from throwing an error like 
 # "make: *** No rule to make target 'migration_name'.  Stop."
