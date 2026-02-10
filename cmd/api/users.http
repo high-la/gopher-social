@@ -1,0 +1,38 @@
+# Check health
+GET http://localhost:40100/v1/health
+
+### "###" used as request to request separater 
+
+# Create users
+POST http://localhost:40100/v1/users
+content-type: application/json
+
+{
+
+}
+
+### Get user by id
+
+GET http://localhost:40100/v1/users/2040
+
+
+
+
+
+
+### Update user by id
+
+PATCH  http://localhost:40100/v1/users/1
+content-type: application/json
+
+{
+
+}
+
+
+
+
+
+### Delete user by id
+
+DELETE http://localhost:40100/v1/users/2
