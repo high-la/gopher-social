@@ -39,3 +39,11 @@ content-type: application/json
 ### Delete post by id
 
 DELETE http://localhost:40100/v1/posts/2
+
+
+
+###
+# ............................................
+# FEED
+
+GET http://localhost:40100/v1/users/feed

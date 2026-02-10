@@ -65,7 +65,7 @@ func (app *application) mount() http.Handler {
 		// /users
 		r.Route("/users", func(r chi.Router) {
 
-			// 2. Routes that DO need the context middleware (must have an ID)
+			//
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.usersContextMiddleware) // Middleware applied only here
 
@@ -73,6 +73,10 @@ func (app *application) mount() http.Handler {
 
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unfollowUserHandler)
+			})
+
+			r.Group(func(r chi.Router) {
+				r.Get("/feed", app.getUserFeedHandler)
 			})
 		})
 	})
