@@ -28,10 +28,10 @@ const version = "0.0.1"
 
 // @BasePath					/v1
 //
-// @securityDefinations.apikey	ApiKeyAuth
+// @securityDefinitions.apikey	ApiKeyAuth
 // @in							header
 // @name						Authorization
-// @description
+// @description				Description for the tool
 func main() {
 
 	// env files
