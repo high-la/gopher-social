@@ -53,4 +53,7 @@ GET http://localhost:40100/v1/users/feed
 GET http://localhost:40100/v1/users/feed?limit=10&offset=0
 
 ### with pagination limit, offset & search
-GET http://localhost:40100/v1/users/feed?limit=10&offset=&search=shift
+GET http://localhost:40100/v1/users/feed?limit=10&offset=&search=one
+
+### with pagination limit, offset, search & tags
+GET http://localhost:40100/v1/users/feed?limit=10&offset=&search=one&tags=Tech
