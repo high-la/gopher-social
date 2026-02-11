@@ -72,6 +72,12 @@ func main() {
 				apiKey: os.Getenv("GOPHER_SOCIAL_SENDGRID_API_KEY"),
 			},
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				username: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_USERNAME"),
+				password: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_PASSWORD"),
+			},
+		},
 	}
 
 	// Database

@@ -23,6 +23,16 @@ type config struct {
 	apiURL      string
 	mail        mailConfig
 	frontendURL string
+	auth        authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+}
+
+type basicConfig struct {
+	username string
+	password string
 }
 
 type mailConfig struct {
@@ -65,8 +75,7 @@ func (app *application) mount() http.Handler {
 
 	// Group routes
 	r.Route("/v1", func(r chi.Router) {
-
-		r.Get("/health", app.healthCheckHandler)
+		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
 
 		// http://localhost:40100/swagger/doc.json
 		docsURL := fmt.Sprintf("%s/v1/swagger/doc.json", app.config.apiURL)
