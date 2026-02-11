@@ -62,6 +62,9 @@ func main() {
 			maxIdleTime:        maxIdleTime,
 		},
 		env: os.Getenv("GOPHER_SOCIAL_APP_ENV"),
+		mail: mailConfig{
+			expiry: time.Hour * 24 * 3,
+		},
 	}
 
 	// Database
