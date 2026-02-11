@@ -8,7 +8,6 @@ POST http://localhost:40100/v1/users
 content-type: application/json
 
 {
-
 }
 
 ### Get user by id

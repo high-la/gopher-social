@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/high-la/gopher-social/internal/db"
+	"github.com/high-la/gopher-social/internal/mailer"
 	"github.com/high-la/gopher-social/internal/store"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
@@ -47,14 +48,16 @@ func main() {
 
 	addr := os.Getenv("GOPHER_SOCIAL_ADDR")
 	apiURL := os.Getenv("GOPHER_SOCIAL_EXTERNAL_URL")
+	frontendURL := os.Getenv("GOPHER_SOCIAL_FRONTEND_URL")
 	dsn := os.Getenv("GOPHER_SOCIAL_DSN")
 	maxOpenConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_OPEN_CONNECTIONS", 30)
 	maxIdleConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_IDLE_CONNECTIONS", 30)
 	maxIdleTime := getEnvTime("GOPHER_SOCIAL_DB_MAX_IDLE_TIME", 15*time.Minute)
 
 	cfg := config{
-		addr:   addr,
-		apiURL: apiURL,
+		addr:        addr,
+		apiURL:      apiURL,
+		frontendURL: frontendURL,
 		db: dbConfig{
 			dsn:                dsn,
 			maxOpenConnections: maxOpenConnections,
@@ -63,7 +66,11 @@ func main() {
 		},
 		env: os.Getenv("GOPHER_SOCIAL_APP_ENV"),
 		mail: mailConfig{
-			expiry: time.Hour * 24 * 3,
+			expiry:    time.Hour * 24 * 3,
+			fromEmail: os.Getenv("GOPHER_SOCIAL_FROM_EMAIL"),
+			sendGrid: sendGridConfig{
+				apiKey: os.Getenv("GOPHER_SOCIAL_SENDGRID_API_KEY"),
+			},
 		},
 	}
 
@@ -79,10 +86,14 @@ func main() {
 	// store
 	store := store.NewStorage(db)
 
+	// Mailer
+	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

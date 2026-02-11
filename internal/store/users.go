@@ -6,8 +6,10 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -83,13 +85,27 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-			return ErrDuplicateEmail
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
-			return ErrDuplicateUsername
-		default:
-			return err
+		/*
+			switch {
+			case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+				return ErrDuplicateEmail
+			case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+				return ErrDuplicateUsername
+			default:
+				return err
+			}
+		*/
+		// 1. Check if it's a pq.Error
+		if pqErr, ok := err.(*pq.Error); ok {
+			// 2. Check for Unique Violation code 23505
+			if pqErr.Code == "23505" {
+				if strings.Contains(pqErr.Message, "users_email_key") {
+					return ErrDuplicateEmail
+				}
+				if strings.Contains(pqErr.Message, "users_username_key") {
+					return ErrDuplicateUsername
+				}
+			}
 		}
 	}
 
@@ -238,4 +254,38 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *UserStore) Delete(ctx context.Context, userID int64) error {
+
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+
+		err := s.delete(ctx, tx, userID)
+		if err != nil {
+			return err
+		}
+
+		// .
+		err = s.deleteUserInvitations(ctx, tx, userID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, id int64) error {
+
+	query := `DELETE FROM users WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.QueryContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
