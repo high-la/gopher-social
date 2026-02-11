@@ -18,6 +18,7 @@ SEED_PATH = ./cmd/migrate/seed/main.go
 run: gen/docs
 	@echo "Running application"
 	@go run ./cmd/api
+	
 
 # ___________________________________________________________________________________________
 #
@@ -64,10 +65,16 @@ seed:
 # Swagger Section
 # ___________________________________________________________________________________________
 # 
+
 .PHONY: gen/docs
 gen/docs:
 	@echo "Generating swagger docs...."
 	@swag init -g ./api/main.go --parseDependency -d cmd,internal && swag fmt
+
+
+
+
+
     
 
 

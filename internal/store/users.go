@@ -65,25 +65,6 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 	})
 }
 
-func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, invitationExpiray time.Duration, userID int64) error {
-
-	// .
-	query := `
-		INSERT INTO user_invitations
-			(tokens, user_id, expiry)
-		VALUES 
-			($1, $2, $3)`
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
-	defer cancel()
-
-	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(invitationExpiray))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 	query := `
@@ -95,7 +76,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).
+	err := tx.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
@@ -107,6 +88,25 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		default:
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, invitationExpiray time.Duration, userID int64) error {
+
+	// .
+	query := `
+		INSERT INTO user_invitations
+			(token, user_id, expiry)
+		VALUES 
+			($1, $2, $3)`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(invitationExpiray))
+	if err != nil {
+		return err
 	}
 
 	return nil
