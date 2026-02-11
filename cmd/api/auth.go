@@ -31,7 +31,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	var payload RegisterUserPayload
 
-	err := readJSON(w, r, payload)
+	err := readJSON(w, r, &payload)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
