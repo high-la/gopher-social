@@ -43,19 +43,19 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userID := 1
-
 	err := Validate.Struct(payload)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
+	user := getUserFromContext(r)
+
 	post := &store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  int64(userID),
+		UserID:  user.ID,
 	}
 
 	ctx := r.Context()

@@ -95,6 +95,8 @@ func (app *application) mount() http.Handler {
 
 		// /posts
 		r.Route("/posts", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+
 			// 1. Routes that DO NOT need the context middleware (no ID yet)
 			r.Post("/", app.createPostHandler)
 
@@ -115,7 +117,7 @@ func (app *application) mount() http.Handler {
 
 			//
 			r.Route("/{id}", func(r chi.Router) {
-				r.Use(app.usersContextMiddleware) // Middleware applied only here
+				r.Use(app.AuthTokenMiddleware)
 
 				r.Get("/", app.getUserHandler) // Maps to GET /users/{id}
 
@@ -124,6 +126,7 @@ func (app *application) mount() http.Handler {
 			})
 
 			r.Group(func(r chi.Router) {
+				r.Use(app.AuthTokenMiddleware)
 				r.Get("/feed", app.getUserFeedHandler)
 			})
 
