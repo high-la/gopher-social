@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/high-la/gopher-social/internal/auth"
 	"github.com/high-la/gopher-social/internal/db"
 	"github.com/high-la/gopher-social/internal/mailer"
 	"github.com/high-la/gopher-social/internal/store"
@@ -77,6 +78,11 @@ func main() {
 				username: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_USERNAME"),
 				password: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_PASSWORD"),
 			},
+			token: tokenConfig{
+				secret: os.Getenv("GOPHER_SOCIAL_AUTH_TOKEN_SECRET"),
+				expiry: time.Hour * 24 * 3,
+				issuer: "gophersocial",
+			},
 		},
 	}
 
@@ -95,11 +101,15 @@ func main() {
 	// Mailer
 	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 
+	// Auth
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.issuer, cfg.auth.token.issuer)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()

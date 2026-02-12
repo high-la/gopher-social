@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/high-la/gopher-social/docs" // This is required to generate swagger docs
+	"github.com/high-la/gopher-social/internal/auth"
 	"github.com/high-la/gopher-social/internal/mailer"
 	"github.com/high-la/gopher-social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -28,6 +29,13 @@ type config struct {
 
 type authConfig struct {
 	basic basicConfig
+	token tokenConfig
+}
+
+type tokenConfig struct {
+	secret string
+	expiry time.Duration
+	issuer string
 }
 
 type basicConfig struct {
@@ -53,10 +61,11 @@ type dbConfig struct {
 }
 
 type application struct {
-	config config
-	store  store.Storage
-	logger *zap.SugaredLogger
-	mailer mailer.Client
+	config        config
+	store         store.Storage
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 func (app *application) mount() http.Handler {
@@ -122,6 +131,7 @@ func (app *application) mount() http.Handler {
 		// Public routes
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 	})
 
