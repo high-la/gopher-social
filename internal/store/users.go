@@ -25,6 +25,8 @@ type User struct {
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`
 	IsActive  bool     `json:"is_active"`
+	RoleID    int64    `json:"role_id"`
+	Role      Role     `json:"role"`
 }
 
 type password struct {
@@ -74,27 +76,18 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 	query := `
 	
-		INSERT INTO users (username, email, password)
-		VALUES ($1, $2, $3)
+		INSERT INTO users (username, email, role_id, password)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := tx.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).
+	err := tx.QueryRowContext(ctx, query, user.Username, user.Email, user.RoleID, user.Password.hash).
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
-		/*
-			switch {
-			case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-				return ErrDuplicateEmail
-			case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
-				return ErrDuplicateUsername
-			default:
-				return err
-			}
-		*/
+
 		// 1. Check if it's a pq.Error
 		if pqErr, ok := err.(*pq.Error); ok {
 			// 2. Check for Unique Violation code 23505
@@ -225,11 +218,11 @@ func (s *UserStore) deleteUserInvitations(ctx context.Context, tx *sql.Tx, userI
 func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 
 	query := `
-	
 		SELECT 
-			id, username, email, password, created_at
-		FROM users
-		WHERE id = $1`
+			u.id, username, email, password, created_at, r.*
+		FROM users u
+		JOIN roles r ON u.role_id = r.id 
+		WHERE u.id = $1 AND is_active = true`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
@@ -243,6 +236,11 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 			&user.Email,
 			&user.Password.hash,
 			&user.CreatedAt,
+			//
+			&user.Role.ID,
+			&user.Role.Name,
+			&user.Role.Level,
+			&user.Role.Description,
 		)
 	if err != nil {
 		switch err {

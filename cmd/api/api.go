@@ -104,9 +104,9 @@ func (app *application) mount() http.Handler {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.postsContextMiddleware) // Middleware applied only here
 
-				r.Get("/", app.getPostHandler)       // Maps to GET /posts/{id}
-				r.Patch("/", app.updatePostHandler)  // Maps to PATCH /posts/{id}
-				r.Delete("/", app.deletePostHandler) // Maps to DELETE /posts/{id}
+				r.Get("/", app.getPostHandler)                                           // Maps to GET /posts/{id}
+				r.Patch("/", app.checkPostOwnership("moderator", app.updatePostHandler)) // Maps to PATCH /posts/{id}
+				r.Delete("/", app.checkPostOwnership("admin", app.deletePostHandler))    // Maps to DELETE /posts/{id}
 			})
 		})
 
