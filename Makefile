@@ -19,6 +19,10 @@ run: gen/docs
 	@echo "Running application"
 	@go run ./cmd/api
 	
+# test
+.PHONY: test
+test:
+	@go test -v ./...
 
 # ___________________________________________________________________________________________
 #
