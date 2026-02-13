@@ -14,6 +14,7 @@ import (
 	"github.com/high-la/gopher-social/internal/auth"
 	"github.com/high-la/gopher-social/internal/mailer"
 	"github.com/high-la/gopher-social/internal/store"
+	"github.com/high-la/gopher-social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -25,6 +26,14 @@ type config struct {
 	mail        mailConfig
 	frontendURL string
 	auth        authConfig
+	redisCfg    redisConfig
+}
+
+type redisConfig struct {
+	addr     string
+	password string
+	db       int
+	enabled  bool
 }
 
 type authConfig struct {
@@ -63,6 +72,7 @@ type dbConfig struct {
 type application struct {
 	config        config
 	store         store.Storage
+	cacheStorage  cache.Storage
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator

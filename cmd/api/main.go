@@ -1,16 +1,17 @@
 package main
 
 import (
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/high-la/gopher-social/internal/auth"
 	"github.com/high-la/gopher-social/internal/db"
+	"github.com/high-la/gopher-social/internal/env"
 	"github.com/high-la/gopher-social/internal/mailer"
 	"github.com/high-la/gopher-social/internal/store"
+	"github.com/high-la/gopher-social/internal/store/cache"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -47,13 +48,30 @@ func main() {
 		logger.Fatal("Error loading .env file")
 	}
 
-	addr := os.Getenv("GOPHER_SOCIAL_ADDR")
-	apiURL := os.Getenv("GOPHER_SOCIAL_EXTERNAL_URL")
-	frontendURL := os.Getenv("GOPHER_SOCIAL_FRONTEND_URL")
-	dsn := os.Getenv("GOPHER_SOCIAL_DSN")
-	maxOpenConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_OPEN_CONNECTIONS", 30)
-	maxIdleConnections := getEnvInt("GOPHER_SOCIAL_DB_MAX_IDLE_CONNECTIONS", 30)
-	maxIdleTime := getEnvTime("GOPHER_SOCIAL_DB_MAX_IDLE_TIME", 15*time.Minute)
+	// Get env vars
+	appEnv := env.GetString("GOPHER_SOCIAL_APP_ENV", "development")
+	//
+	addr := env.GetString("GOPHER_SOCIAL_ADDR", "")
+	apiURL := env.GetString("GOPHER_SOCIAL_EXTERNAL_URL", "")
+	frontendURL := env.GetString("GOPHER_SOCIAL_FRONTEND_URL", "")
+	// Database
+	dsn := env.GetString("GOPHER_SOCIAL_DSN", "")
+	maxOpenConnections := env.GetInt("GOPHER_SOCIAL_DB_MAX_OPEN_CONNECTIONS", 30)
+	maxIdleConnections := env.GetInt("GOPHER_SOCIAL_DB_MAX_IDLE_CONNECTIONS", 30)
+	maxIdleTime := env.GetTime("GOPHER_SOCIAL_DB_MAX_IDLE_TIME", 15*time.Minute)
+	// Redis
+	redisAddr := env.GetString("GOPHER_SOCIAL_REDIS_ADDRESS", "")
+	redisPassword := env.GetString("GOPHER_SOCIAL_REDIS_PASSWORD", "")
+	redisDB := env.GetInt("GOPHER_SOCIAL_REDIS_DB", 0)
+	redisEnabled := env.GetBool("GOPHER_SOCIAL_REDIS_ENABLED", false)
+	// Email
+	fromEmail := env.GetString("GOPHER_SOCIAL_FROM_EMAIL", "")
+	sendGridApiKey := env.GetString("GOPHER_SOCIAL_SENDGRID_API_KEY", "")
+	// Basic Auth
+	basicAuthUsername := env.GetString("GOPHER_SOCIAL_BASIC_AUTH_USERNAME", "")
+	basicAuthPassword := env.GetString("GOPHER_SOCIAL_BASIC_AUTH_PASSWORD", "")
+	// Auth token
+	authTokenSecret := env.GetString("GOPHER_SOCIAL_AUTH_TOKEN_SECRET", "")
 
 	cfg := config{
 		addr:        addr,
@@ -65,21 +83,27 @@ func main() {
 			maxIdleConnections: maxIdleConnections,
 			maxIdleTime:        maxIdleTime,
 		},
-		env: os.Getenv("GOPHER_SOCIAL_APP_ENV"),
+		redisCfg: redisConfig{
+			addr:     redisAddr,
+			password: redisPassword,
+			db:       redisDB,
+			enabled:  redisEnabled,
+		},
+		env: appEnv,
 		mail: mailConfig{
 			expiry:    time.Hour * 24 * 3,
-			fromEmail: os.Getenv("GOPHER_SOCIAL_FROM_EMAIL"),
+			fromEmail: fromEmail,
 			sendGrid: sendGridConfig{
-				apiKey: os.Getenv("GOPHER_SOCIAL_SENDGRID_API_KEY"),
+				apiKey: sendGridApiKey,
 			},
 		},
 		auth: authConfig{
 			basic: basicConfig{
-				username: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_USERNAME"),
-				password: os.Getenv("GOPHER_SOCIAL_BASIC_AUTH_PASSWORD"),
+				username: basicAuthUsername,
+				password: basicAuthPassword,
 			},
 			token: tokenConfig{
-				secret: os.Getenv("GOPHER_SOCIAL_AUTH_TOKEN_SECRET"),
+				secret: authTokenSecret,
 				expiry: time.Hour * 24 * 3,
 				issuer: "gophersocial",
 			},
@@ -95,8 +119,15 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
+	// Cache (Redis)
+	var rdb *redis.Client
+	if cfg.redisCfg.enabled {
+		rdb = cache.NewRedisClient(cfg.redisCfg.addr, cfg.redisCfg.password, cfg.redisCfg.db)
+		logger.Info("redis cache connection established")
+	}
 	// store
 	store := store.NewStorage(db)
+	cacheStorage := cache.NewRedisStorage(rdb)
 
 	// Mailer
 	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
@@ -107,6 +138,7 @@ func main() {
 	app := &application{
 		config:        cfg,
 		store:         store,
+		cacheStorage:  cacheStorage,
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
@@ -115,23 +147,4 @@ func main() {
 	mux := app.mount()
 
 	logger.Fatal(app.run(mux))
-}
-
-// getEnvInt reads an env var and converts to int, or returns a default
-func getEnvInt(key string, fallback int) int {
-	val, err := strconv.Atoi(os.Getenv(key))
-	if err != nil {
-		return fallback
-	}
-	return val
-}
-
-// getEnvTime reads an env var and parses it as a duration (e.g. "15m", "1h")
-func getEnvTime(key string, fallback time.Duration) time.Duration {
-	val := os.Getenv(key)
-	d, err := time.ParseDuration(val)
-	if err != nil {
-		return fallback
-	}
-	return d
 }

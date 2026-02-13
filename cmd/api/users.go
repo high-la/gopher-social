@@ -65,19 +65,24 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 //	@Router			/users/{id} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 
-	user := getUserFromContext(r)
-
-	user, err := app.store.Users.GetByID(r.Context(), user.ID)
+	idParam := chi.URLParam(r, "id")
+	userID, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
-		switch err {
-		case store.ErrNotFound:
+	ctx := r.Context()
+
+	user, err := app.getUser(ctx, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)
-			return
 		default:
 			app.internalServerError(w, r, err)
-			return
 		}
+		return
 	}
 
 	err = app.jsonResponse(w, http.StatusOK, user)

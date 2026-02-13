@@ -84,6 +84,9 @@ gen/docs:
 # ___________________________________________________________________________________________
 # 
 
+# docker command for running redis
+# docker run -d --rm --name gophersocial-redis -p 6379:6379 redis:8.4 redis-server --loglevel warning
+
 # 4. The "Catch-All" Target
 # This is CRITICAL. It prevents Make from throwing an error like 
 # "make: *** No rule to make target 'migration_name'.  Stop."
