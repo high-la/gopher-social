@@ -77,13 +77,18 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
 	
 		INSERT INTO users (username, email, role_id, password)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, (SELECT id FROM roles WHERE name = $3), $4)
 		RETURNING id, created_at`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := tx.QueryRowContext(ctx, query, user.Username, user.Email, user.RoleID, user.Password.hash).
+	role := user.Role.Name
+	if role == "" {
+		role = "user"
+	}
+
+	err := tx.QueryRowContext(ctx, query, user.Username, user.Email, role, user.Password.hash).
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
@@ -100,6 +105,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 				}
 			}
 		}
+		return err
 	}
 
 	return nil
