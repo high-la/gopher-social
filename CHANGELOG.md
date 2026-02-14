@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/high-la/gopher-social/compare/v1.0.0...v1.1.0) (2026-02-14)
+
+
+### Features
+
+* update api version automatically ([b926a74](https://github.com/high-la/gopher-social/commit/b926a74df6ea22c931211c3055143461235417df))
+
 ## 1.0.0 (2026-02-14)
 
 
