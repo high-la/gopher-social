@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/high-la/gopher-social/compare/v1.2.0...v1.2.1) (2026-02-14)
+
+
+### Bug Fixes
+
+* failed to auto change version in main ([001d348](https://github.com/high-la/gopher-social/commit/001d348e0cddb485c902e315994a43fc09f9d5bd))
+
 ## [1.2.0](https://github.com/high-la/gopher-social/compare/v1.1.0...v1.2.0) (2026-02-14)
 
 
