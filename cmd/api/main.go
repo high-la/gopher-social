@@ -7,6 +7,7 @@ import (
 	"github.com/high-la/gopher-social/internal/db"
 	"github.com/high-la/gopher-social/internal/env"
 	"github.com/high-la/gopher-social/internal/mailer"
+	"github.com/high-la/gopher-social/internal/ratelimiter"
 	"github.com/high-la/gopher-social/internal/store"
 	"github.com/high-la/gopher-social/internal/store/cache"
 	"github.com/joho/godotenv"
@@ -72,6 +73,9 @@ func main() {
 	basicAuthPassword := env.GetString("GOPHER_SOCIAL_BASIC_AUTH_PASSWORD", "")
 	// Auth token
 	authTokenSecret := env.GetString("GOPHER_SOCIAL_AUTH_TOKEN_SECRET", "")
+	// Rate limiter
+	reqPerTimeFrame := env.GetInt("GOPHER_SOCIAL_RATELIMITER_REQUEST_COUNT", 20)
+	isRateLimiterEnabled := env.GetBool("GOPHER_SOCIAL_RATELIMITER_ENABLED", true)
 
 	cfg := config{
 		addr:        addr,
@@ -108,6 +112,11 @@ func main() {
 				issuer: "gophersocial",
 			},
 		},
+		rateLimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: reqPerTimeFrame,
+			TimeFrame:            time.Second * 5,
+			Enabled:              isRateLimiterEnabled,
+		},
 	}
 
 	// Database
@@ -135,6 +144,12 @@ func main() {
 	// Auth
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.issuer, cfg.auth.token.issuer)
 
+	// Rate limiter
+	ratelimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.rateLimiter.RequestsPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
+
 	app := &application{
 		config:        cfg,
 		store:         store,
@@ -142,6 +157,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
+		rateLimiter:   ratelimiter,
 	}
 
 	mux := app.mount()

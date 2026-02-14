@@ -18,6 +18,7 @@ import (
 	"github.com/high-la/gopher-social/docs" // This is required to generate swagger docs
 	"github.com/high-la/gopher-social/internal/auth"
 	"github.com/high-la/gopher-social/internal/mailer"
+	"github.com/high-la/gopher-social/internal/ratelimiter"
 	"github.com/high-la/gopher-social/internal/store"
 	"github.com/high-la/gopher-social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -32,6 +33,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	rateLimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -81,6 +83,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 func (app *application) mount() http.Handler {
@@ -91,6 +94,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
