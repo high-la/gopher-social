@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const version = "1.2.0"
+const version = "1.2.1"
 
 // ..............................swagger directives
 //	@title			GopherSocial
