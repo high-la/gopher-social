@@ -46,15 +46,15 @@ PostgreSQL + Redis
 
 # Tech Stack
 
-- Language: Go
-- HTTP Server: net/http
-- Database: PostgreSQL
-- Cache: Redis
-- Auth: JWT-based authentication
-- Email Service: SendGrid
-- Docs: Swagger (OpenAPI)
-- Containerization: Docker
-- CI/CD: GitHub Actions
+- **Language:** Go
+- **HTTP Server:** net/http
+- **Database:** PostgreSQL
+- **Cache:** Redis
+- **Auth:** JWT-based authentication
+- **Email Service:** SendGrid
+- **Docs:** Swagger (OpenAPI)
+- **Containerization:** Docker
+- **CI/CD:** GitHub Actions
 
 ---
 
